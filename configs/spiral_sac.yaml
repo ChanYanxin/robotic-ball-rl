@@ -1,0 +1,15 @@
+experiment: spiral_tangential_reward
+seed: 42
+total_timesteps: 100000
+n_envs: 16
+episode_steps: 200
+control_dt_s: 0.1
+algorithm: SAC
+algorithm_kwargs:
+  gamma: 0.995
+  gradient_steps: 2
+  train_transitions_per_update_block: 16
+normalization:
+  observation: true
+  reward: true
+  clip_observation: 10.0

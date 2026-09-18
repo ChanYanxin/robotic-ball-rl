@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "robotic-ball-rl"
+version = "0.1.0"
+description = "Portfolio refactor of an underactuated robotic-ball reinforcement-learning experiment"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=2.0,<3",
+]
+
+[project.optional-dependencies]
+rl = [
+  "gymnasium[mujoco]==1.1.1",
+  "mujoco==2.3.7",
+  "stable-baselines3==2.6.0",
+  "torch==2.7.1",
+  "matplotlib>=3.9,<4",
+  "pandas>=2.2,<3",
+  "tensorboard>=2.20,<3",
+]
+dev = [
+  "pytest>=8,<9",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

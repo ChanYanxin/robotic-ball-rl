@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+runs/
+tensorboard/
+*.zip
+*.pkl
+*.pth
+.DS_Store
+.ipynb_checkpoints/
+
+# Local-only summer-school material: do not publish.
+fizzy_modules/
+checkpoints_SAC/
+checkpoints_trained/
+course_materials/

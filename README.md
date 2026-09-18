@@ -1,20 +1,27 @@
 # Underactuated Robotic Ball — Reinforcement Learning
 
-A portfolio refactor of my September 2026 **Artificial Intelligence for Robotics** summer-school experiment at RWTH Aachen / IRT.
+Portfolio refactor of my September 2026 **Artificial Intelligence for Robotics** summer-school experiment at RWTH Aachen / IRT.
 
-The project studies reinforcement-learning control of **Fizzy**, a single-motor underactuated robotic ball, using a supplied MuJoCo/Gymnasium simulator. My main experiment designed a new reward for tangential motion, trained a Soft Actor-Critic (SAC) policy, and evaluated the resulting trajectory. The repository also documents the sim-to-real constraints that become visible when moving from privileged simulation signals to onboard IMU sensing.
+The project studies reinforcement-learning control of **Fizzy**, a single-motor underactuated robotic ball, using a supplied MuJoCo/Gymnasium simulator. My main experiment designed a new reward for tangential motion, trained a Soft Actor-Critic (SAC) policy, and evaluated the resulting behavior.
 
 > **Scope note:** the original course simulator, robot model, notebooks, pretrained checkpoints, VMC baseline, and hardware adapter are not redistributed here. This repository contains my portfolio refactor, experiment artifacts, tests, and documentation. See [`docs/provenance.md`](docs/provenance.md).
 
-## Recorded result
+## What I implemented
+
+- a custom **tangential-velocity reward** for circular/spiral motion;
+- a vectorized **SAC** training pipeline with 16 environments;
+- observation/reward normalization with **VecNormalize**;
+- deterministic evaluation and trajectory diagnostics;
+- a reusable Gymnasium wrapper, configuration, unit tests, and CI;
+- an explicit analysis of the **sim-to-real gap** and what additional sensing/calibration would be needed for physical deployment.
+
+## Recorded training result
 
 The SAC run used **16 parallel environments** and a **100,000-transition** training budget. The latest periodic training log (99,200 transitions) reports an SB3 rollout mean reward of **131**. This is a training statistic rather than an independent task-success metric.
 
-![Training curve](results/training_curve.png)
+![Training curve](results/training_curve.svg)
 
-The deterministic 50-second evaluation shows the learned policy producing sustained tangential motion, but the radius grows and oscillates because the reward does not constrain radial error.
-
-![Spiral rollout](results/spiral_rollout.png)
+The saved 50-second deterministic rollout showed sustained tangential motion, but the radius grew and oscillated because the reward did not constrain radial error. That failure mode is useful: it directly motivates adding a radius-tracking term instead of treating the first reward as a finished controller.
 
 ## RL formulation
 
@@ -37,7 +44,7 @@ tangent = [-sin(alpha), cos(alpha)]
 reward = dot(tangent, velocity) / ||velocity||
 ```
 
-A stationary robot receives zero reward. The design encourages circulation, but it intentionally leaves a failure mode: **radial drift is unpenalized**. That behavior is visible in the recorded evaluation and motivates the next design step—a radial-error term for circle tracking.
+A stationary robot receives zero reward. The design encourages circulation but does **not** penalize radial drift.
 
 ## Engineering structure
 
@@ -45,15 +52,15 @@ A stationary robot receives zero reward. The design encourages circulation, but 
 robotic-ball-rl/
 ├── configs/                 # reproducible experiment settings
 ├── docs/                    # formulation, provenance, sim-to-real notes
-├── results/                 # artifacts from the recorded September 2026 run
+├── results/                 # recorded training data and visualization
 ├── scripts/                 # thin train/evaluate entry points
 ├── src/robotic_ball_rl/
-│   ├── rewards.py           # original reward formulation
+│   ├── rewards.py           # custom reward formulation
 │   ├── wrappers.py          # Gymnasium reward wrapper
 │   ├── external_env.py      # local-only adapter to the course simulator
 │   ├── train.py             # vectorized SAC training pipeline
-│   └── evaluate.py          # deterministic rollout + trajectory export
-└── tests/                   # unit tests independent of course code
+│   └── evaluate.py          # deterministic rollout + diagnostics
+└── tests/                   # public unit tests independent of course code
 ```
 
 ## Run the public tests
@@ -83,7 +90,9 @@ The simulation can use world-frame position and velocity to compute the spiral r
 
 ## Context
 
-Fizzy is an open-source robotic-ball platform used to explore underactuated control and robot learning. Related research: G. Spigler, S. Silenzi, B. Horstman, H. Vallery, *Intuitive Engineering as a Proxy Facilitates the Evolutionary Optimization of an Underactuated Robot Ball*, EARL @ RSS 2024.
+Fizzy is an open-source robotic-ball research platform for underactuated control and robot learning. Related research:
+
+G. Spigler, S. Silenzi, B. Horstman, H. Vallery, *Intuitive Engineering as a Proxy Facilitates the Evolutionary Optimization of an Underactuated Robot Ball*, EARL @ RSS 2024.
 
 - Project website: https://fizzyball.org/
 - Paper: https://openreview.net/forum?id=n97siS87bF
