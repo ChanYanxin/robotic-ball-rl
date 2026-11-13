@@ -11,7 +11,7 @@ The project studies reinforcement-learning control of **Fizzy**, a single-motor 
 - a custom **tangential-velocity reward** for circular/spiral motion;
 - a vectorized **SAC** training pipeline with 16 environments;
 - observation/reward normalization with **VecNormalize**;
-- deterministic evaluation and trajectory diagnostics;
+- deterministic evaluation, trajectory diagnostics, and independent geometry metrics;
 - a reusable Gymnasium wrapper, configuration, unit tests, and CI;
 - an explicit analysis of the **sim-to-real gap** and what additional sensing/calibration would be needed for physical deployment.
 
@@ -62,6 +62,17 @@ robotic-ball-rl/
 │   └── evaluate.py          # deterministic rollout + diagnostics
 └── tests/                   # public unit tests independent of course code
 ```
+
+## Independent evaluation diagnostics
+
+The evaluation command exports `trajectory.csv`, `trajectory_xy.png`,
+`radius_vs_time.png`, and `evaluation_metrics.json`. The JSON includes
+radial drift, radius variability, path length, signed CCW turns and raw
+rollout reward. These are diagnostics rather than a task-success rate.
+The public repository does not ship the private simulator/checkpoint,
+so these new metrics have **not** been recomputed against the original
+course rollout here. See [the interview and evidence audit](docs/interview_audit.md)
+for what was actually tested and which improvements remain proposals.
 
 ## Run the public tests
 
