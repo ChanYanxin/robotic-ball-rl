@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -13,10 +14,13 @@ from stable_baselines3 import SAC
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 
 from .external_env import load_course_env_class
+from .metrics import trajectory_metrics
 from .wrappers import SpiralRewardWrapper
 
 
 def evaluate(run_dir: Path, *, seed: int = 42, steps: int = 500, output_dir: Path | None = None):
+    if steps < 2:
+        raise ValueError("steps must be at least 2 to compute trajectory diagnostics")
     output_dir = output_dir or run_dir
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -54,6 +58,14 @@ def evaluate(run_dir: Path, *, seed: int = 42, steps: int = 500, output_dir: Pat
     df = pd.DataFrame(rows)
     df["radius_m"] = np.hypot(df["x_m"], df["y_m"])
     df.to_csv(output_dir / "trajectory.csv", index=False)
+
+    # These metrics are independent of the SB3 training rollout mean.
+    # Save geometry and raw episodic reward for reproducible comparisons.
+    metrics = trajectory_metrics(df[["x_m", "y_m"]].to_numpy())
+    metrics["total_reward"] = float(df["reward"].sum())
+    metrics["mean_reward_per_step"] = float(df["reward"].mean())
+    with (output_dir / "evaluation_metrics.json").open("w", encoding="utf-8") as file:
+        json.dump(metrics, file, indent=2)
 
     fig, ax = plt.subplots(figsize=(5.2, 5.2))
     ax.plot(df["x_m"], df["y_m"])

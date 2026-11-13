@@ -47,6 +47,12 @@ class SpiralRewardWrapper(gym.Wrapper):
         velocity_xy = np.asarray(data.joint(0).qvel[:2], dtype=float)
         reward = tangential_alignment_reward(position_xy, velocity_xy)
 
+        # Evaluation should not depend on optional keys from the course
+        # simulator's info dictionary. Use the same physical state as reward.
+        info = dict(info)
+        info["x_position"] = float(position_xy[0])
+        info["y_position"] = float(position_xy[1])
+
         # This experiment replaces the goal-reaching task. Episode length is
         # controlled by an outer gymnasium.wrappers.TimeLimit.
         terminated = False
